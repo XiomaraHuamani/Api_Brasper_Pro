@@ -341,8 +341,10 @@ class CouponAutomaticView(GenericAPIView):
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
 
     def get_permissions(self):
-        # Requerir autenticación para todas las operaciones
-        return [IsAuthenticated()]
+        # Público para lectura; autenticado (staff) para escritura
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [AllowAny()]
+        return [IsStaff()]
 
     def get_queryset(self):
         queryset = Coupon.objects.filter(type='automatic')
@@ -375,7 +377,10 @@ class CouponAutomaticDetailView(GenericAPIView):
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
 
     def get_permissions(self):
-        return [IsAuthenticated()]
+        # Público para detalle; modificaciones restringidas
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [AllowAny()]
+        return [IsStaff()]
 
     def get_object(self):
         return get_object_or_404(Coupon, id=self.kwargs['pk'], type='automatic')
