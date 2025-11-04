@@ -309,7 +309,7 @@ class CouponV2ManagementView(GenericAPIView):
     def get_permissions(self):
         # Public read; restricted write
         if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
-            return [AllowAny()]
+            return [IsAuthenticated()]
         return [IsStaff()]
 
     def get_queryset(self):
@@ -341,8 +341,10 @@ class CouponAutomaticView(GenericAPIView):
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
 
     def get_permissions(self):
-        # Requerir autenticación para todas las operaciones
-        return [IsAuthenticated()]
+        # Público para lectura; autenticado (staff) para escritura
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [AllowAny()]
+        return [IsStaff()]
 
     def get_queryset(self):
         queryset = Coupon.objects.filter(type='automatic')
@@ -375,7 +377,10 @@ class CouponAutomaticDetailView(GenericAPIView):
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
 
     def get_permissions(self):
-        return [IsAuthenticated()]
+        # Público para detalle; modificaciones restringidas
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [AllowAny()]
+        return [IsStaff()]
 
     def get_object(self):
         return get_object_or_404(Coupon, id=self.kwargs['pk'], type='automatic')
@@ -415,8 +420,8 @@ class CouponV2DetailView(GenericAPIView):
     def get_permissions(self):
         if self.request.method in ['PATCH', 'DELETE']:
             return [IsStaff()]
-        # Allow public GET on coupon detail
-        return [AllowAny()]
+        # Auth required for reading v2 coupon detail
+        return [IsAuthenticated()]
 
     def get_object(self):
         return get_object_or_404(Coupon, id=self.kwargs['pk'], type='automatic')
@@ -442,7 +447,7 @@ class CouponV2DetailView(GenericAPIView):
 class CouponV2ByCodeView(GenericAPIView):
     serializer_class = CouponV2Serializer
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, code):
         try:
