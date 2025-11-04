@@ -1,0 +1,71 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Transacción Finalizada{% endblock %}
+
+{% block header_title %}<h2>Transacción Finalizada</h2>{% endblock %}
+
+{% block content %}
+
+    <!-- Usamos tabla para mayor compatibilidad -->
+    <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 20px 0;">
+        <tr>
+            <td align="center" width="33%" style="text-align: center; padding: 5px;">
+                <div style="color: #30c96d; font-weight: bold; font-size: 18px;">✓</div>
+                <div style="font-size: 12px; color: #662d91;">Registro de operación</div>
+            </td>
+            <td align="center" width="33%" style="text-align: center; padding: 5px;">
+                <div style="color: #30c96d; font-weight: bold; font-size: 18px;">✓</div>
+                <div style="font-size: 12px; color: #662d91;">Validación realizada</div>
+            </td>
+            <td align="center" width="33%" style="text-align: center; padding: 5px;">
+                <div style="color: #30c96d; font-weight: bold; font-size: 18px;">✓</div>
+                <div style="font-size: 12px; color: #662d91;">Transferencia finalizada</div>
+            </td>
+        </tr>
+    </table>
+    
+    <div style="margin: 15px 0; font-weight: bold; color: #0749bb; text-align: center; background-color: #f2f9ff; padding: 15px; border-radius: 4px;">
+        {{ user_name }} la transferencia de tu operación Nro. {{ transaction_id }} fue realizada con éxito.
+    </div>
+        
+    <h3 style="color: #0749bb; margin-bottom: 10px;">Resumen de tu operación:</h3>
+    
+    <div style="background-color: #f9f9f9; border-left: 4px solid #0749bb; padding: 15px; margin: 15px 0; border-radius: 4px;">
+        <div style="margin-bottom: 8px; color: #333;">
+            <strong style="color: #662d91;">Fecha:</strong> {{ transaction_date }}
+        </div>
+        
+        <div style="margin-bottom: 8px; color: #333;">
+            <strong style="color: #662d91;">Tipo de cambio:</strong> {{ exchange_rate|floatformat:2 }}
+        </div>
+        
+        <div style="margin-bottom: 8px; color: #333;">
+            <strong style="color: #662d91;">Estado:</strong> {{ status }}
+        </div>
+        
+        {% if payment_method %}
+        <div style="margin-bottom: 8px; color: #333;">
+            <strong style="color: #662d91;">Método de pago:</strong> {{ payment_method }}
+        </div>
+        {% endif %}
+        
+        <div style="margin-bottom: 8px; color: #333; font-weight: bold;">
+            <strong style="color: #662d91;">Envías:</strong> <span style="color: #0749bb;">{{ source_currency }} {{ source_amount }}</span>
+        </div>
+        
+        <div style="margin-bottom: 8px; color: #333; font-weight: bold;">
+            <strong style="color: #662d91;">Recibes:</strong> <span style="color: #0749bb;">{{ destination_currency }} {{ destination_amount }}</span>
+        </div>
+    </div>
+    
+    <p style="margin-bottom: 5px;">Esperamos volver a verte pronto.</p>
+    <p style="margin-bottom: 15px;">Equipo BrasPer Transferencias</p>
+    
+    <center>
+        <a href="{{ dashboard_url }}" style="display: inline-block; background-color: #0749bb; color: white; padding: 10px 25px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 15px; margin-bottom: 15px;">Realizar otra operación</a>
+    </center>
+    
+    <div style="font-size: 12px; color: #666; margin-top: 20px; text-align: center;">
+        No respondas a este mensaje porque es automático. Si tienes dudas puedes obtener ayuda en nuestra sección de Preguntas Frecuentes.
+    </div>
+{% endblock %}

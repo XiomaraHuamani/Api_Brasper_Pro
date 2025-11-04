@@ -1,0 +1,71 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Bienvenido a {{ app_name }}{% endblock %}
+
+{% block styles %}
+.welcome-message {
+    font-size: 18px;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+.feature-list {
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    padding: 20px;
+    margin: 25px 0;
+}
+.feature-item {
+    margin-bottom: 15px;
+    padding-left: 25px;
+    position: relative;
+}
+.feature-item::before {
+    content: "✓";
+    color: #5cb85c;
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+}
+.cta-container {
+    text-align: center;
+    margin: 30px 0;
+}
+.profile-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: block;
+    background-color: #e0e0e0;
+}
+{% endblock %}
+
+{% block header %}
+    <h1>¡Bienvenido a {{ app_name }}!</h1>
+{% endblock %}
+
+{% block content %}
+    <!-- <img src="{{ profile_image_url|default:'default-avatar.png' }}" alt="Perfil" class="profile-image"> -->
+    
+    <p class="welcome-message">Hola <strong>{{ user_name }}</strong>,</p>
+    
+    <p>¡Gracias por registrarte en nuestra plataforma! Estamos emocionados de tenerte con nosotros.</p>
+    
+    <p>Tu cuenta ha sido creada exitosamente con el correo: <strong>{{ email }}</strong></p>
+    
+    <div class="feature-list">
+        <p>Con tu cuenta, ahora puedes:</p>
+        <div class="feature-item">Realizar transacciones seguras</div>
+        <div class="feature-item">Monitorear tu historial de actividad</div>
+        <div class="feature-item">Acceder a reportes detallados</div>
+        <div class="feature-item">Configurar notificaciones personalizadas</div>
+    </div>
+    
+    <div class="cta-container">
+        <a href="{{ login_url }}" class="button">Iniciar Sesión</a>
+    </div>
+    
+    <p>Si tienes cualquier pregunta o necesitas ayuda, no dudes en contactar a nuestro equipo de soporte.</p>
+    
+    <p>Saludos,<br>El equipo de {{ app_name }}</p>
+{% endblock %}

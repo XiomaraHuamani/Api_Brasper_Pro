@@ -1,0 +1,409 @@
+from django.shortcuts import get_object_or_404
+from rest_framework.generics import GenericAPIView
+from rest_framework.response import Response
+from rest_framework import mixins, status
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from .models import Currency, ExchangeRate, Commission, Range
+from .serializers import CommissionSerializerApp, CurrencySerializer, ExchangeRateSerializer, CommissionSerializer, ExchangeRateSerializerApp, RangeSerializer, ReverseCommissionSerializerApp
+from apps.users.permissions import IsStaff
+
+class CurrencyView(GenericAPIView):
+    queryset = Currency.objects.all()
+    serializer_class = CurrencySerializer
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        currencies = self.get_queryset()
+        serializer = self.serializer_class(currencies, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CurrencyDetailView(GenericAPIView):
+    queryset = Currency.objects.all()
+    serializer_class = CurrencySerializer
+    # permission_classes = [IsAuthenticated]
+
+    def get_object(self, currency_id):
+        return get_object_or_404(self.get_queryset(), id=currency_id)
+
+    def get(self, request, currency_id):
+        currency = self.get_object(currency_id)
+        serializer = self.serializer_class(currency)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, currency_id):
+        currency = self.get_object(currency_id)
+        serializer = self.serializer_class(currency, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, currency_id):
+        currency = self.get_object(currency_id)
+        currency.delete()
+        return Response({"message": "Currency deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+class ExchangeRateView(GenericAPIView):
+    queryset = ExchangeRate.objects.all()
+    serializer_class = ExchangeRateSerializer
+    # permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [AllowAny()]
+        return [IsStaff()]
+    def get(self, request):
+        exchange_rates = self.get_queryset()
+        serializer = self.serializer_class(exchange_rates, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ExchangeRateDetailView(GenericAPIView):
+    queryset = ExchangeRate.objects.all()
+    serializer_class = ExchangeRateSerializer
+    # permission_classes = [IsAuthenticated]
+
+    def get_object(self, exchange_rate_id):
+        return get_object_or_404(self.get_queryset(), id=exchange_rate_id)
+
+    def get(self, request, exchange_rate_id):
+        exchange_rate = self.get_object(exchange_rate_id)
+        serializer = self.serializer_class(exchange_rate)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, exchange_rate_id):
+        exchange_rate = self.get_object(exchange_rate_id)
+        serializer = self.serializer_class(exchange_rate, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def patch(self, request, exchange_rate_id):
+        exchange_rate = self.get_object(exchange_rate_id)
+        serializer = self.serializer_class(exchange_rate, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, exchange_rate_id):
+        exchange_rate = self.get_object(exchange_rate_id)
+        exchange_rate.delete()
+        return Response({"message": "Exchange rate deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+class RangeView(GenericAPIView):
+    queryset = Range.objects.all()
+    serializer_class = RangeSerializer
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        ranges = self.get_queryset()
+        serializer = self.serializer_class(ranges, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class RangeDetailView(GenericAPIView):
+    queryset = Range.objects.all()
+    serializer_class = RangeSerializer
+    # permission_classes = [IsAuthenticated]
+
+    def get_object(self, range_id):
+        return get_object_or_404(self.get_queryset(), id=range_id)
+
+    def get(self, request, range_id):
+        range_obj = self.get_object(range_id)
+        serializer = self.serializer_class(range_obj)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, range_id):
+        range_obj = self.get_object(range_id)
+        serializer = self.serializer_class(range_obj, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, range_id):
+        range_obj = self.get_object(range_id)
+        range_obj.delete()
+        return Response({"message": "Range deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+class CommissionView(GenericAPIView):
+    queryset = Commission.objects.all()
+    serializer_class = CommissionSerializer
+    # permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [AllowAny()]
+        return [IsStaff()]
+    def get(self, request):
+        # Obtenemos las comisiones ordenadas
+        commissions = self.get_queryset().order_by(
+            'base_currency',
+            'target_currency',
+            'range__min_amount'  # Asumiendo que 'range' es una relación a un modelo que contiene min_amount
+        )
+        serializer = self.serializer_class(commissions, many=True)
+        
+
+        sorted_data = sorted(
+            serializer.data,
+            key=lambda x: (
+                x['base_currency'],
+                x['target_currency'],
+                float(x['range_details']['min_amount'])
+            )
+        )
+        
+        return Response(sorted_data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CommissionRangeView(GenericAPIView):
+    queryset = Commission.objects.all()
+    serializer_class = CommissionSerializer
+
+    def get(self, request):
+        # Obtenemos todas las comisiones
+        commissions = self.get_queryset()
+        
+        # Creamos un diccionario para agrupar por combinación de monedas
+        grouped_commissions = {}
+        
+        for commission in commissions:
+            key = (commission.base_currency, commission.target_currency)
+            range_amount = float(commission.range.min_amount)
+            
+            if key not in grouped_commissions:
+                grouped_commissions[key] = {
+                    'min_range': commission,
+                    'max_range': commission
+                }
+            else:
+                # Actualizamos el mínimo si encontramos uno menor
+                if range_amount < float(grouped_commissions[key]['min_range'].range.min_amount):
+                    grouped_commissions[key]['min_range'] = commission
+                # Actualizamos el máximo si encontramos uno mayor
+                if range_amount > float(grouped_commissions[key]['max_range'].range.min_amount):
+                    grouped_commissions[key]['max_range'] = commission
+
+        # Preparamos la lista de resultados
+        result = []
+        for key, value in grouped_commissions.items():
+            result.extend([
+                self.serializer_class(value['min_range']).data,
+                self.serializer_class(value['max_range']).data
+            ])
+
+        # Ordenamos el resultado final
+        sorted_result = sorted(
+            result,
+            key=lambda x: (
+                x['base_currency'],
+                x['target_currency'],
+                float(x['range_details']['min_amount'])
+            )
+        )
+
+        return Response(sorted_result, status=status.HTTP_200_OK)
+
+class CommissionDetailView(GenericAPIView):
+    queryset = Commission.objects.all()
+    serializer_class = CommissionSerializer
+    # permission_classes = [IsAuthenticated]
+
+    def get_object(self, commission_id):
+        return get_object_or_404(self.get_queryset(), id=commission_id)
+
+    def get(self, request, commission_id):
+        commission = self.get_object(commission_id)
+        serializer = self.serializer_class(commission)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, commission_id):
+        commission = self.get_object(commission_id)
+        serializer = self.serializer_class(commission, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, commission_id):
+        commission = self.get_object(commission_id)
+        serializer = self.serializer_class(commission, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, commission_id):
+        commission = self.get_object(commission_id)
+        commission.delete()
+        return Response({"message": "Commission deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    
+
+class ExchangeRateListViewApp(mixins.ListModelMixin,mixins.CreateModelMixin,GenericAPIView):
+    queryset = ExchangeRate.objects.all()
+    serializer_class = ExchangeRateSerializerApp
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        combined_rates = {}
+        for item in serializer.data:
+            combined_rates.update(item)
+        return Response(combined_rates)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+class ExchangeRateDetailViewApp(mixins.RetrieveModelMixin,mixins.UpdateModelMixin,mixins.DestroyModelMixin,GenericAPIView):
+    queryset = ExchangeRate.objects.all()
+    serializer_class = ExchangeRateSerializerApp
+    lookup_fields = ['base_currency__code', 'target_currency__code']
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            return [IsStaff()] 
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        filter_kwargs = {
+            'base_currency__code': self.kwargs['base_currency'],
+            'target_currency__code': self.kwargs['target_currency']
+        }
+        obj = get_object_or_404(queryset, **filter_kwargs)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+    
+# Commission Views
+
+
+class CommissionRatesViewApp(GenericAPIView, mixins.ListModelMixin):
+    queryset = Commission.objects.all()
+    serializer_class = CommissionSerializerApp
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        
+        grouped_commissions = {}
+        for item in serializer.data:
+            key = f"{item['base_currency']}-{item['target_currency']}"
+            if key not in grouped_commissions:
+                grouped_commissions[key] = []
+            grouped_commissions[key].append(item['range'])
+        
+        return Response(grouped_commissions)
+
+class ReverseCommissionRatesViewApp(GenericAPIView, mixins.ListModelMixin):
+    queryset = Commission.objects.all()
+    serializer_class = ReverseCommissionSerializerApp
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        
+        grouped_commissions = {}
+        for item in serializer.data:
+            key = f"{item['target_currency']}-{item['base_currency']}"
+            if key not in grouped_commissions:
+                grouped_commissions[key] = []
+            grouped_commissions[key].append(item['range'])
+        
+        return Response(grouped_commissions)
+
+
+class CommissionDetailViewApp(GenericAPIView, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin):
+    queryset = Commission.objects.all()
+    serializer_class = CommissionSerializerApp
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        filter_kwargs = {
+            'base_currency__code': self.kwargs['base_currency'],
+            'target_currency__code': self.kwargs['target_currency'],
+            'range__min_amount': self.kwargs['min_amount'],
+            'range__max_amount': self.kwargs['max_amount']
+        }
+        obj = get_object_or_404(queryset, **filter_kwargs)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+class ReverseCommissionDetailViewApp(GenericAPIView, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin):
+    queryset = Commission.objects.all()
+    serializer_class = ReverseCommissionSerializerApp
+    # permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        filter_kwargs = {
+            'base_currency__code': self.kwargs['target_currency'],
+            'target_currency__code': self.kwargs['base_currency'],
+            'range__min_amount': self.kwargs['min_amount'],
+            'range__max_amount': self.kwargs['max_amount']
+        }
+        obj = get_object_or_404(queryset, **filter_kwargs)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)

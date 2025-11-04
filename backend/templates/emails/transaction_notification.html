@@ -1,0 +1,44 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Confirmación de Transacción{% endblock %}
+
+{% block header_title %}<h2>Confirmación de Transacción</h2>{% endblock %}
+
+{% block content %}
+    <p style="font-family: Arial, sans-serif; color: #333333; margin-bottom: 15px;">Hola {{ user_name }}, tu transacción ha sido procesada exitosamente.</p>
+
+    <!-- <p style="font-family: Arial, sans-serif; color: #333333; margin-bottom: 20px;">Tu transacción ha sido procesada exitosamente.</p> -->
+
+    <p style="font-family: Arial, sans-serif; color: #333333; margin-bottom: 20px;">Estamos trabajando en tu operación. Nuestros asesores ya están ejecutando la transferencia de tu cambio a la cuenta indicada.</p>
+
+    <div style="background-color: #f7f7f7; border-radius: 5px; padding: 20px; margin: 20px 0; border-left: 4px solid #0749bb;">
+
+        <div style="margin-bottom: 8px; color: #333;">
+            <strong style="color: #662d91;">ID de Transacción:</strong> {{ transaction_id }}
+        </div>
+
+        <div style="margin-bottom: 8px; color: #333;">
+            <strong style="color: #662d91;">Fecha:</strong> {{ transaction_date }}
+        </div>
+
+        <div style="margin-bottom: 8px; color: #333;">
+            <strong style="color: #662d91;">Tipo de cambio:</strong> {{ exchange_rate|floatformat:2 }}
+        </div>
+
+        <div style="margin-bottom: 8px; color: #333; font-weight: bold;">
+            <strong style="color: #662d91;">Envías:</strong> <span style="color: #0749bb;">{{ source_currency }} {{ source_amount }}</span>
+        </div>
+
+        <div style="margin-bottom: 8px; color: #333; font-weight: bold;">
+            <strong style="color: #662d91;">Recibes:</strong> <span style="color: #0749bb;">{{ destination_currency }} {{ destination_amount }}</span>
+        </div>
+    </div>
+
+    <p style="font-family: Arial, sans-serif; color: #333333; margin-bottom: 15px;">Puedes ver los detalles completos de tu transacción en tu panel de control.</p>
+
+    <center>
+        <a href="{{ dashboard_url }}" style="display: inline-block; background-color: #0749bb; color: white; padding: 10px 25px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 15px; margin-bottom: 15px; font-family: Arial, sans-serif;">Ver Detalles</a>
+    </center>
+
+    <p style="font-family: Arial, sans-serif; color: #333333;">Gracias por usar nuestros servicios.</p>
+{% endblock %}

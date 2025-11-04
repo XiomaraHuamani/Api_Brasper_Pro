@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirmación de Transacción</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f7f7f7;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background-color: #0749bb;
+        color: #ffffff;
+        padding: 15px;
+        text-align: center;
+      }
+      .content {
+        padding: 20px;
+      }
+      .footer {
+        background-color: #0749bb;
+        padding: 10px;
+        text-align: center;
+        font-size: 12px;
+        color: #ffffff;
+      }
+      .social-links {
+        margin: 15px 0;
+        text-align: center;
+      }
+      .social-links a {
+        display: inline-block;
+        margin: 0 10px;
+        color: white;
+        text-decoration: none;
+      }
+      .social-links img {
+        width: 32px;
+        height: 32px;
+      }
+      .logo-container {
+        margin-top: 15px;
+        text-align: center;
+      }
+      .logo {
+        max-width: 150px;
+        height: auto;
+      }
+      .transaction-details {
+        background-color: #f7f7f7;
+        border-radius: 5px;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid #0749bb;
+      }
+      .amount {
+        font-size: 24px;
+        font-weight: bold;
+        color: #4a90e2;
+        margin: 15px 0;
+      }
+      .button {
+        display: inline-block;
+        background-color: #0749bb;
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 4px;
+        margin-top: 15px;
+      }
+      .detail-row {
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ffffff;
+      }
+      .detail-row:last-child {
+        border-bottom: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        {% block header_title %}
+        <h2>Confirmación de Transacción</h2>
+        {% endblock %}
+      </div>
+      {% block content %}
+      <!-- <p>Hola {{ user_name }},</p>
+        <p>Tu transacción ha sido procesada.</p>
+        
+        <div class="transaction-details">
+            
+            <div class="detail-row">
+                <strong>ID de Transacción:</strong> {{ transaction_id }}
+            </div>
+            
+            <div class="detail-row">
+                <strong>Fecha:</strong> {{ transaction_date }}
+            </div>
+            
+            <div class="detail-row">
+                <strong>Estado:</strong> {{ status }}
+            </div>
+            
+            {% if payment_method %}
+            <div class="detail-row">
+                <strong>Método de pago:</strong> {{ payment_method }}
+            </div>
+            {% endif %}
+            
+            {% if description %}
+            <div class="detail-row">
+                <strong>Descripción:</strong> {{ description }}
+            </div>
+            {% endif %}
+            {% if source_currency %}
+            <div class="detail-row">
+             <strong>Envías: </strong> {{ source_currency }} {{ source_amount }}
+            </div>
+            {% endif %}
+            {% if destination_currency %}
+            <div class="detail-row">
+             <strong>Recibes: </strong> {{ destination_currency }} {{ destination_amount }}
+            </div>
+            {% endif %}
+        </div>
+        <p>Nos encontramos realizando tu transferencia a tu cuenta de destino.</p>
+        <p>Puedes ver los detalles completos en tu panel de control.</p>
+        <center>
+            <a href="{{ dashboard_url }}" class="button">Ver detalles</a>
+        </center> -->
+      {% endblock %}
+      <div class="footer">
+        <div class="logo-container">
+          <img
+            src="https://braspertransferencias.com/assets/images/logos/LOGO_POSITIVO.png"
+            alt="BRASPER Logo"
+            class="logo"
+          />
+        </div>
+        <div class="social-links">
+          <a href="https://facebook.com/braspertransferencias" target="_blank">
+            <img
+              src="https://braspertransferencias.com/assets/images/social/facebook.png"
+              alt="Facebook"
+            />
+          </a>
+          <a href="https://instagram.com/braspertransferencias" target="_blank">
+            <img
+              src="https://braspertransferencias.com/assets/images/social/instagram.png"
+              alt="Instagram"
+            />
+          </a>
+          <a href="https://twitter.com/braspertr" target="_blank">
+            <img
+              src="https://braspertransferencias.com/assets/images/social/twitter.png"
+              alt="Twitter"
+            />
+          </a>
+        </div>
+        <p>
+          Este es un correo automático, por favor no respondas a este mensaje.
+        </p>
+
+        <p>
+          &copy; {{ current_year }} BrasPer Transferencias. Todos los derechos
+          reservados.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

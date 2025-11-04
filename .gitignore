@@ -1,0 +1,105 @@
+# .gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+
+
+# Archivos de Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.swp
+*.swo
+
+# Python bytecode files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Entorno virtual (venv)
+venv/
+.env
+*.env
+env/
+*.venv
+
+# Configuración del entorno
+*.DS_Store
+*.log
+*.pot
+*.mo
+*.out
+*.pid
+*.seed
+*.lock
+*.sqlite3
+*.pydevproject
+*.project
+*.tmproj
+*.rbc
+*.o
+*.so
+
+# Archivos de bases de datos locales
+db.sqlite3
+db.sqlite3-journal
+
+# Configuración de IDEs y editores
+.vscode/
+.idea/
+*.iml
+
+# Archivos de migraciones generados
+**/migrations/**/__pycache__/
+**/migrations/*.pyc
+**/migrations/*.pyo
+**/migrations/*.pyd
+**/migrations/*.swp
+**/migrations/*.swo
+**/migrations/*.log
+
+# Archivos de logs
+logs/
+*.log
+
+# Archivos de compilación estática
+staticfiles/
+static/
+#media/
+node_modules/
+
+# Archivos generados por Django
+*.secret
+local_settings.py
+settings_local.py
+
+# Archivos de dependencias
+Pipfile
+Pipfile.lock
+poetry.lock
+__pypackages__/
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Archivos de cobertura de pruebas
+.coverage
+htmlcov/
+*.cover
+.tox/
+.nox/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Archivos de caché
+.cache/
+.pytest_cache/
+.env
