@@ -57,8 +57,9 @@ INSTALLED_APPS = [
 SOCIALACCOUNT_PROVIDERS = {
    'google': {
        'APP': {
-           'client_id': env('GOOGLE_CLIENT_ID'),
-           'secret': env('GOOGLE_CLIENT_SECRET'), 
+           # Use empty defaults to avoid crashing when env vars are not present
+           'client_id': env('GOOGLE_CLIENT_ID', default=''),
+           'secret': env('GOOGLE_CLIENT_SECRET', default=''), 
        }
    }
 }
