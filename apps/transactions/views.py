@@ -12,7 +12,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 
 from apps.users.permissions import IsOwnerOrStaff, IsStaff
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .email_service import EmailService
 
 User = get_user_model()
@@ -307,8 +307,9 @@ class CouponV2ManagementView(GenericAPIView):
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
 
     def get_permissions(self):
+        # Public read; restricted write
         if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
-            return [IsAuthenticated()]
+            return [AllowAny()]
         return [IsStaff()]
 
     def get_queryset(self):
@@ -414,7 +415,8 @@ class CouponV2DetailView(GenericAPIView):
     def get_permissions(self):
         if self.request.method in ['PATCH', 'DELETE']:
             return [IsStaff()]
-        return super().get_permissions()
+        # Allow public GET on coupon detail
+        return [AllowAny()]
 
     def get_object(self):
         return get_object_or_404(Coupon, id=self.kwargs['pk'], type='automatic')
@@ -440,6 +442,7 @@ class CouponV2DetailView(GenericAPIView):
 class CouponV2ByCodeView(GenericAPIView):
     serializer_class = CouponV2Serializer
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
+    permission_classes = [AllowAny]
 
     def get(self, request, code):
         try:
