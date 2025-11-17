@@ -87,7 +87,13 @@ class ExchangeRateDetailView(GenericAPIView):
         exchange_rate = self.get_object(exchange_rate_id)
         serializer = self.serializer_class(exchange_rate, data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            # Obtener el nombre de usuario o email del usuario autenticado
+            user_name = getattr(request.user, 'username', None) or getattr(request.user, 'email', 'Anonymous')
+            instance = serializer.save(updated_by=user_name)
+            # Refrescar el objeto desde la base de datos para obtener updated_date actualizado
+            instance.refresh_from_db()
+            # Serializar nuevamente con los datos actualizados
+            serializer = self.serializer_class(instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -95,7 +101,13 @@ class ExchangeRateDetailView(GenericAPIView):
         exchange_rate = self.get_object(exchange_rate_id)
         serializer = self.serializer_class(exchange_rate, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            # Obtener el nombre de usuario o email del usuario autenticado
+            user_name = getattr(request.user, 'username', None) or getattr(request.user, 'email', 'Anonymous')
+            instance = serializer.save(updated_by=user_name)
+            # Refrescar el objeto desde la base de datos para obtener updated_date actualizado
+            instance.refresh_from_db()
+            # Serializar nuevamente con los datos actualizados
+            serializer = self.serializer_class(instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -300,6 +312,23 @@ class ExchangeRateDetailViewApp(mixins.RetrieveModelMixin,mixins.UpdateModelMixi
         self.check_object_permissions(self.request, obj)
         return obj
 
+    def perform_update(self, serializer):
+        # Obtener el nombre de usuario o email del usuario autenticado
+        user_name = getattr(self.request.user, 'username', None) or getattr(self.request.user, 'email', 'Anonymous')
+        serializer.save(updated_by=user_name)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        # Refrescar la instancia y serializar nuevamente para obtener updated_date actualizado
+        if hasattr(serializer, 'instance') and serializer.instance:
+            serializer.instance.refresh_from_db()
+            serializer = self.get_serializer(serializer.instance)
+        return Response(serializer.data)
+
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
@@ -307,7 +336,8 @@ class ExchangeRateDetailViewApp(mixins.RetrieveModelMixin,mixins.UpdateModelMixi
         return self.update(request, *args, **kwargs)
 
     def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)

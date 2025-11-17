@@ -20,8 +20,11 @@ class ExchangeRateSerializer(serializers.ModelSerializer):
             'target_currency_name',
             'rate',
             'created_date',
-            'created_by'
+            'created_by',
+            'updated_date',
+            'updated_by'
         ]
+        read_only_fields = ['updated_date']
 
 class RangeSerializer(serializers.ModelSerializer):
     class Meta:

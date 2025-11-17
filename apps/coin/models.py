@@ -54,6 +54,13 @@ class ExchangeRate(models.Model):
         max_length=250,
         null=True
     )
+    updated_date = models.DateTimeField(auto_now=True, null=True)
+    updated_by = models.CharField(
+        default='',
+        max_length=250,
+        null=True,
+        help_text='Usuario que realizó la última actualización'
+    )
 
     class Meta:
         unique_together = ('base_currency', 'target_currency')

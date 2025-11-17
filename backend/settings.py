@@ -152,6 +152,14 @@ REST_FRAMEWORK = {
 
 
 }
+
+# Cache simple en memoria para acelerar endpoints (p.ej., blogs list/retrieve)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'local-inmemory-cache',
+    }
+}
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
