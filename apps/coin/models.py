@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q, F
 
 class Currency(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -35,19 +36,17 @@ class ExchangeRate(models.Model):
     id = models.BigAutoField(primary_key=True)
     base_currency = models.ForeignKey(
         Currency,
-        related_name='base_currency',
-        on_delete=models.CASCADE
+        related_name='as_base_rates',
+        on_delete=models.CASCADE,
+        db_index=True
     )
     target_currency = models.ForeignKey(
         Currency,
-        related_name='target_currency',
-        on_delete=models.CASCADE
+        related_name='as_target_rates',
+        on_delete=models.CASCADE,
+        db_index=True
     )
-    rate = models.FloatField(
-        null=True,
-        default=1,
-        help_text='Tasa de cambio entre la moneda base y la moneda objetivo'
-    )
+    rate = models.DecimalField(max_digits=20, decimal_places=8, default=1, help_text='Tasa base→objetivo')
     created_date = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(
         default='',
@@ -63,7 +62,17 @@ class ExchangeRate(models.Model):
     )
 
     class Meta:
-        unique_together = ('base_currency', 'target_currency')
+        ordering = ['-created_date']
+        get_latest_by = 'created_date'
+        constraints = [
+            models.UniqueConstraint(fields=['base_currency', 'target_currency'], name='uniq_base_target'),
+            models.CheckConstraint(check=Q(rate__gt=0), name='rate_gt_zero'),
+            models.CheckConstraint(check=~Q(base_currency=F('target_currency')), name='base_ne_target'),
+        ]
+        indexes = [
+            models.Index(fields=['base_currency', 'created_date'], name='idx_base_created'),
+            models.Index(fields=['target_currency', 'created_date'], name='idx_target_created'),
+        ]
 
     def __str__(self):
         return f"{self.base_currency.code} to {self.target_currency.code}: {self.rate}"
@@ -111,12 +120,8 @@ class Commission(models.Model):
         related_name='commissions',
         help_text='Rango de cantidad asociado a esta comisión'
     )
-    commission_percentage = models.FloatField(
-        help_text='Porcentaje de comisión aplicado al intercambio de moneda'
-    )
-    reverse_commission = models.FloatField(
-        help_text='Comisión inversa para el intercambio de moneda en dirección opuesta'
-    )
+    commission_percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text='Porcentaje de comisión aplicado al intercambio de moneda')
+    reverse_commission = models.DecimalField(max_digits=5, decimal_places=2, help_text='Comisión inversa para el intercambio de moneda en dirección opuesta')
     created_date = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(
         default='',
@@ -125,7 +130,14 @@ class Commission(models.Model):
     )
 
     class Meta:
-        unique_together = ('base_currency', 'target_currency', 'range')
+        constraints = [
+            models.UniqueConstraint(fields=['base_currency', 'target_currency', 'range'], name='uniq_commission_triplet'),
+            models.CheckConstraint(check=Q(commission_percentage__gte=0) & Q(commission_percentage__lte=100), name='commission_pct_0_100'),
+            models.CheckConstraint(check=Q(reverse_commission__gte=0) & Q(reverse_commission__lte=100), name='reverse_commission_0_100'),
+        ]
+        indexes = [
+            models.Index(fields=['base_currency', 'target_currency', 'range'], name='idx_comm_base_target_range'),
+        ]
 
     def __str__(self):
         return f"Commission from {self.base_currency.code} to {self.target_currency.code} ({self.range}): {self.commission_percentage}%"

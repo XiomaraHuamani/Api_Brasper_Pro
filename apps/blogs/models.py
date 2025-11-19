@@ -9,7 +9,7 @@ class LanguageChoices(models.TextChoices):
 class Blog(models.Model):
     id = models.BigAutoField(primary_key=True)
     title = models.CharField(max_length=500, blank=True, null=True)
-    slug = models.SlugField(unique=True, blank=True, null=False)
+    slug = models.SlugField(unique=True, max_length=500, blank=True, null=False)
     excerpt = models.TextField(blank=True, null=True)
     content = models.TextField(blank=True, null=True)
     category = models.CharField(max_length=100, blank=True, null=True, db_index=True)

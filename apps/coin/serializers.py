@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Currency, ExchangeRate, Commission, Range
+from decimal import Decimal, InvalidOperation
 
 class CurrencySerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,6 +26,24 @@ class ExchangeRateSerializer(serializers.ModelSerializer):
             'updated_by'
         ]
         read_only_fields = ['updated_date']
+
+    def validate_rate(self, value):
+        if value is None:
+            raise serializers.ValidationError("La tasa es requerida.")
+        try:
+            decimal_value = Decimal(value)
+        except (InvalidOperation, TypeError):
+            raise serializers.ValidationError("La tasa debe ser un número válido.")
+        if decimal_value <= 0:
+            raise serializers.ValidationError("La tasa debe ser mayor que 0.")
+        return value
+
+    def validate(self, attrs):
+        base = attrs.get('base_currency') or getattr(self.instance, 'base_currency', None)
+        target = attrs.get('target_currency') or getattr(self.instance, 'target_currency', None)
+        if base and target and base == target:
+            raise serializers.ValidationError("La moneda base y la moneda objetivo deben ser distintas.")
+        return attrs
 
 class RangeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,6 +88,24 @@ class ExchangeRateSerializerApp(serializers.ModelSerializer):
             'target_currency_name',
             'rate'
         ]
+
+    def validate_rate(self, value):
+        if value is None:
+            raise serializers.ValidationError("La tasa es requerida.")
+        try:
+            decimal_value = Decimal(value)
+        except (InvalidOperation, TypeError):
+            raise serializers.ValidationError("La tasa debe ser un número válido.")
+        if decimal_value <= 0:
+            raise serializers.ValidationError("La tasa debe ser mayor que 0.")
+        return value
+
+    def validate(self, attrs):
+        base = attrs.get('base_currency') or getattr(self.instance, 'base_currency', None)
+        target = attrs.get('target_currency') or getattr(self.instance, 'target_currency', None)
+        if base and target and base == target:
+            raise serializers.ValidationError("La moneda base y la moneda objetivo deben ser distintas.")
+        return attrs
 
     def to_representation(self, instance):
         return {
