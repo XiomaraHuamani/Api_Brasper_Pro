@@ -208,8 +208,8 @@ class CouponManagementView(GenericAPIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     def get_permissions(self):
         if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
-            return [IsAuthenticated()]
-        return [IsStaff()]
+            return [AllowAny()]  # Acceso público para consultar cupones
+        return [IsStaff()]  # Solo staff puede crear cupones
     def get_queryset(self):
         queryset = Coupon.objects.filter(type='manual')
         
@@ -253,7 +253,7 @@ class CouponDetailView(GenericAPIView):
     def get_permissions(self):
         if self.request.method in ['PATCH', 'DELETE']:
             return [IsStaff()]  # Solo staff puede modificar/eliminar
-        return super().get_permissions()
+        return [AllowAny()]  # Acceso público para consultar cupones
     def get_object(self):
         return get_object_or_404(Coupon, id=self.kwargs['pk'], type='manual')
 
@@ -285,6 +285,9 @@ class CouponByCodeView(GenericAPIView):
     GET: Retrieves a specific coupon using its code
     """
     serializer_class = CouponSerializer
+    
+    def get_permissions(self):
+        return [AllowAny()]  # Acceso público para consultar cupones por código
 
     def get(self, request, code):
         """Retrieves coupon details by code"""

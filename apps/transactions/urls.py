@@ -3,8 +3,8 @@ from .views import BankAccountListCreateView, BankAccountDetailView, CouponByCod
 
 urlpatterns = [
     path('coupons/', CouponManagementView.as_view(), name='coupon-list-create'),
+    path('coupons/code/<str:code>/', CouponByCodeView.as_view(), name='coupon-by-code'),  # Más específico primero
     path('coupons/<int:pk>/', CouponDetailView.as_view(), name='coupon-detail'),
-    path('coupons/code/<str:code>/', CouponByCodeView.as_view(), name='coupon-by-code'),
     # V2 routes with extended fields (image_cupon, type)
     path('coupons/v2/', CouponV2ManagementView.as_view(), name='coupon-v2-list-create'),
     path('coupons/v2/<int:pk>/', CouponV2DetailView.as_view(), name='coupon-v2-detail'),
