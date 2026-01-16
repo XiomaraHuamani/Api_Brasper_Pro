@@ -177,7 +177,10 @@ class CommissionView(ListCreateAPIView):
         )
     
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        """
+        Lista todas las comisiones usando DRF estándar
+        """
+        queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         
         # Ordenar los datos serializados
@@ -241,6 +244,14 @@ class CommissionRangeView(GenericAPIView):
         return Response(sorted_result, status=status.HTTP_200_OK)
 
 class CommissionDetailView(RetrieveUpdateDestroyAPIView):
+    """
+    Vista genérica de DRF para obtener, actualizar y eliminar una comisión específica.
+    Usa RetrieveUpdateDestroyAPIView que proporciona automáticamente:
+    - GET: retrieve (obtener detalle)
+    - PUT: update (actualización completa)
+    - PATCH: partial_update (actualización parcial)
+    - DELETE: destroy (eliminar)
+    """
     queryset = Commission.objects.all()
     serializer_class = CommissionSerializer
     permission_classes = [AllowAny]
@@ -249,7 +260,7 @@ class CommissionDetailView(RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         """
-        Override para usar el lookup_url_kwarg correctamente
+        Override para usar el lookup_url_kwarg correctamente con DRF
         """
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
@@ -257,21 +268,32 @@ class CommissionDetailView(RetrieveUpdateDestroyAPIView):
         self.check_object_permissions(self.request, obj)
         return obj
 
+    def retrieve(self, request, *args, **kwargs):
+        """
+        GET: Obtiene el detalle de una comisión usando DRF estándar
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
     def perform_update(self, serializer):
-        instance = serializer.save()
-        # Refrescar el objeto desde la base de datos para obtener datos actualizados
-        instance.refresh_from_db()
+        """
+        Guarda la instancia actualizada
+        """
+        serializer.save()
 
     def update(self, request, *args, **kwargs):
+        """
+        PUT/PATCH: Actualiza una comisión usando DRF estándar
+        """
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        # Serializar nuevamente con los datos actualizados
-        if hasattr(serializer, 'instance') and serializer.instance:
-            serializer.instance.refresh_from_db()
-            serializer = self.get_serializer(serializer.instance)
+        # Refrescar la instancia y serializar nuevamente para obtener datos actualizados
+        serializer.instance.refresh_from_db()
+        serializer = self.get_serializer(serializer.instance)
         return Response(serializer.data)
     
 

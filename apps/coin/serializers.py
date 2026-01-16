@@ -70,7 +70,7 @@ class CommissionSerializer(serializers.ModelSerializer):
             'created_date',
             'created_by'
         ]
-        read_only_fields = ['created_date']
+        read_only_fields = ['created_date', 'created_by', 'id']
 
 class ExchangeRateSerializerApp(serializers.ModelSerializer):
     base_currency = serializers.SlugRelatedField(slug_field='code', queryset=Currency.objects.all())
