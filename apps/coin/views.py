@@ -288,7 +288,14 @@ class CommissionDetailView(RetrieveUpdateDestroyAPIView):
         """
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        
+        # Remover range_details del request.data si está presente (es read_only)
+        data = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
+        if 'range_details' in data:
+            # range_details es read_only, así que lo removemos para evitar confusión
+            del data['range_details']
+        
+        serializer = self.get_serializer(instance, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         # Refrescar la instancia y serializar nuevamente para obtener datos actualizados

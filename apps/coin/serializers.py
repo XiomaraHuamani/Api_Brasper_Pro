@@ -70,7 +70,49 @@ class CommissionSerializer(serializers.ModelSerializer):
             'created_date',
             'created_by'
         ]
-        read_only_fields = ['created_date', 'created_by', 'id']
+        read_only_fields = ['created_date', 'created_by', 'id', 'range_details']
+
+    def validate_commission_percentage(self, value):
+        """Validar que commission_percentage sea un número válido entre 0 y 100"""
+        if value is None:
+            raise serializers.ValidationError("El porcentaje de comisión es requerido.")
+        try:
+            decimal_value = Decimal(str(value))
+        except (InvalidOperation, TypeError, ValueError):
+            raise serializers.ValidationError("El porcentaje de comisión debe ser un número válido.")
+        if decimal_value < 0 or decimal_value > 100:
+            raise serializers.ValidationError("El porcentaje de comisión debe estar entre 0 y 100.")
+        return decimal_value
+
+    def validate_reverse_commission(self, value):
+        """Validar que reverse_commission sea un número válido entre 0 y 100"""
+        if value is None:
+            raise serializers.ValidationError("La comisión inversa es requerida.")
+        try:
+            decimal_value = Decimal(str(value))
+        except (InvalidOperation, TypeError, ValueError):
+            raise serializers.ValidationError("La comisión inversa debe ser un número válido.")
+        if decimal_value < 0 or decimal_value > 100:
+            raise serializers.ValidationError("La comisión inversa debe estar entre 0 y 100.")
+        return decimal_value
+
+    def validate(self, attrs):
+        """Validación a nivel de objeto"""
+        base = attrs.get('base_currency') or getattr(self.instance, 'base_currency', None)
+        target = attrs.get('target_currency') or getattr(self.instance, 'target_currency', None)
+        range_obj = attrs.get('range') or getattr(self.instance, 'range', None)
+        
+        if base and target and base == target:
+            raise serializers.ValidationError({
+                'base_currency': 'La moneda base y la moneda objetivo deben ser distintas.'
+            })
+        
+        if range_obj is None:
+            raise serializers.ValidationError({
+                'range': 'El rango es requerido.'
+            })
+        
+        return attrs
 
 class ExchangeRateSerializerApp(serializers.ModelSerializer):
     base_currency = serializers.SlugRelatedField(slug_field='code', queryset=Currency.objects.all())
