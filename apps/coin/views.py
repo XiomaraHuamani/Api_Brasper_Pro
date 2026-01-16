@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -159,24 +159,28 @@ class RangeDetailView(GenericAPIView):
         range_obj.delete()
         return Response({"message": "Range deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
-class CommissionView(GenericAPIView):
+class CommissionView(ListCreateAPIView):
     queryset = Commission.objects.all()
     serializer_class = CommissionSerializer
-    # permission_classes = [IsAuthenticated]
+    
     def get_permissions(self):
         if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
             return [AllowAny()]
         return [IsStaff()]
-    def get(self, request):
+    
+    def get_queryset(self):
         # Obtenemos las comisiones ordenadas
-        commissions = self.get_queryset().order_by(
+        return super().get_queryset().order_by(
             'base_currency',
             'target_currency',
-            'range__min_amount'  # Asumiendo que 'range' es una relación a un modelo que contiene min_amount
+            'range__min_amount'
         )
-        serializer = self.serializer_class(commissions, many=True)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
         
-
+        # Ordenar los datos serializados
         sorted_data = sorted(
             serializer.data,
             key=lambda x: (
@@ -187,13 +191,6 @@ class CommissionView(GenericAPIView):
         )
         
         return Response(sorted_data, status=status.HTTP_200_OK)
-    
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CommissionRangeView(GenericAPIView):
     queryset = Commission.objects.all()
@@ -243,39 +240,39 @@ class CommissionRangeView(GenericAPIView):
 
         return Response(sorted_result, status=status.HTTP_200_OK)
 
-class CommissionDetailView(GenericAPIView):
+class CommissionDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Commission.objects.all()
     serializer_class = CommissionSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    lookup_field = 'id'
+    lookup_url_kwarg = 'commission_id'
 
-    def get_object(self, commission_id):
-        return get_object_or_404(self.get_queryset(), id=commission_id)
+    def get_object(self):
+        """
+        Override para usar el lookup_url_kwarg correctamente
+        """
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+        obj = get_object_or_404(self.get_queryset(), **filter_kwargs)
+        self.check_object_permissions(self.request, obj)
+        return obj
 
-    def get(self, request, commission_id):
-        commission = self.get_object(commission_id)
-        serializer = self.serializer_class(commission)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        # Refrescar el objeto desde la base de datos para obtener datos actualizados
+        instance.refresh_from_db()
 
-    def put(self, request, commission_id):
-        commission = self.get_object(commission_id)
-        serializer = self.serializer_class(commission, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, commission_id):
-        commission = self.get_object(commission_id)
-        serializer = self.serializer_class(commission, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, commission_id):
-        commission = self.get_object(commission_id)
-        commission.delete()
-        return Response({"message": "Commission deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        # Serializar nuevamente con los datos actualizados
+        if hasattr(serializer, 'instance') and serializer.instance:
+            serializer.instance.refresh_from_db()
+            serializer = self.get_serializer(serializer.instance)
+        return Response(serializer.data)
     
 
 class ExchangeRateListViewApp(mixins.ListModelMixin,mixins.CreateModelMixin,GenericAPIView):
