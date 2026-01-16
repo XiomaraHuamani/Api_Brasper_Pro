@@ -245,11 +245,10 @@ class CommissionRangeView(GenericAPIView):
 
 class CommissionDetailView(RetrieveUpdateDestroyAPIView):
     """
-    Vista genérica de DRF para obtener, actualizar y eliminar una comisión específica.
+    Vista genérica de DRF para obtener, actualizar parcialmente y eliminar una comisión específica.
     Usa RetrieveUpdateDestroyAPIView que proporciona automáticamente:
     - GET: retrieve (obtener detalle)
-    - PUT: update (actualización completa)
-    - PATCH: partial_update (actualización parcial)
+    - PATCH: partial_update (actualización parcial) - PUT está deshabilitado
     - DELETE: destroy (eliminar)
     """
     queryset = Commission.objects.all()
@@ -276,17 +275,27 @@ class CommissionDetailView(RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
+    def put(self, request, *args, **kwargs):
+        """
+        PUT está deshabilitado. Usa PATCH para actualizaciones parciales.
+        """
+        return Response(
+            {
+                "error": "PUT method is not allowed. Use PATCH for partial updates."
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+
     def perform_update(self, serializer):
         """
         Guarda la instancia actualizada
         """
         serializer.save()
 
-    def update(self, request, *args, **kwargs):
+    def partial_update(self, request, *args, **kwargs):
         """
-        PUT/PATCH: Actualiza una comisión usando DRF estándar
+        PATCH: Actualiza parcialmente una comisión usando DRF estándar
         """
-        partial = kwargs.pop('partial', False)
         instance = self.get_object()
         
         # Remover range_details del request.data si está presente (es read_only)
@@ -295,7 +304,7 @@ class CommissionDetailView(RetrieveUpdateDestroyAPIView):
             # range_details es read_only, así que lo removemos para evitar confusión
             del data['range_details']
         
-        serializer = self.get_serializer(instance, data=data, partial=partial)
+        serializer = self.get_serializer(instance, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         # Refrescar la instancia y serializar nuevamente para obtener datos actualizados
