@@ -121,7 +121,7 @@ class Commission(models.Model):
         help_text='Rango de cantidad asociado a esta comisión'
     )
     commission_percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text='Porcentaje de comisión aplicado al intercambio de moneda')
-    reverse_commission = models.DecimalField(max_digits=5, decimal_places=2, help_text='Comisión inversa para el intercambio de moneda en dirección opuesta')
+    reverse_commission = models.DecimalField(max_digits=6, decimal_places=3, help_text='Comisión inversa para el intercambio de moneda en dirección opuesta')
     created_date = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(
         default='',

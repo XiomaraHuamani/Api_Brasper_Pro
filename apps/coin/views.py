@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.db import IntegrityError
 from rest_framework.generics import GenericAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework import mixins, status
@@ -119,7 +120,7 @@ class ExchangeRateDetailView(GenericAPIView):
 class RangeView(GenericAPIView):
     queryset = Range.objects.all()
     serializer_class = RangeSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         ranges = self.get_queryset()
@@ -128,15 +129,48 @@ class RangeView(GenericAPIView):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
+        if not serializer.is_valid():
+            # Interceptar y mejorar mensajes de error de unique_together
+            # En settings.py, NON_FIELD_ERRORS_KEY está configurado como "error"
+            errors = serializer.errors
+            if 'error' in errors:
+                error_list = errors['error']
+                if isinstance(error_list, list):
+                    # Buscar el mensaje de unique_together y reemplazarlo
+                    for i, error_msg in enumerate(error_list):
+                        if isinstance(error_msg, str) and ('unique' in error_msg.lower() or 'min_amount, max_amount' in error_msg.lower()):
+                            min_amount = request.data.get('min_amount', 'N/A')
+                            max_amount = request.data.get('max_amount', 'N/A')
+                            errors['error'][i] = f'Ya existe un rango con min_amount={min_amount} y max_amount={max_amount}. La combinación de min_amount y max_amount debe ser única.'
+            elif 'non_field_errors' in errors:
+                # Fallback por si cambia la configuración
+                non_field_errors = errors['non_field_errors']
+                if isinstance(non_field_errors, list):
+                    for i, error_msg in enumerate(non_field_errors):
+                        if isinstance(error_msg, str) and ('unique' in error_msg.lower() or 'min_amount, max_amount' in error_msg.lower()):
+                            min_amount = request.data.get('min_amount', 'N/A')
+                            max_amount = request.data.get('max_amount', 'N/A')
+                            errors['non_field_errors'][i] = f'Ya existe un rango con min_amount={min_amount} y max_amount={max_amount}. La combinación de min_amount y max_amount debe ser única.'
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError as e:
+            # Manejar errores de integridad de la base de datos como respaldo
+            if 'unique' in str(e).lower() or 'duplicate' in str(e).lower():
+                return Response({
+                    'error': 'Ya existe un rango con esta combinación de min_amount y max_amount. '
+                            'La combinación de min_amount y max_amount debe ser única.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'error': 'Error al crear el rango. Por favor verifica los datos.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class RangeDetailView(GenericAPIView):
     queryset = Range.objects.all()
     serializer_class = RangeSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_object(self, range_id):
         return get_object_or_404(self.get_queryset(), id=range_id)
@@ -164,36 +198,22 @@ class CommissionView(ListCreateAPIView):
     serializer_class = CommissionSerializer
     
     def get_permissions(self):
-        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+        if self.request.method in ['GET', 'POST', 'HEAD', 'OPTIONS']:
             return [AllowAny()]
         return [IsStaff()]
     
     def get_queryset(self):
-        # Obtenemos las comisiones ordenadas
-        return super().get_queryset().order_by(
-            'base_currency',
-            'target_currency',
-            'range__min_amount'
-        )
+        # Obtenemos las comisiones ordenadas por ID
+        return super().get_queryset().order_by('id')
     
     def list(self, request, *args, **kwargs):
         """
-        Lista todas las comisiones usando DRF estándar
+        Lista todas las comisiones usando DRF estándar ordenadas por ID
         """
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         
-        # Ordenar los datos serializados
-        sorted_data = sorted(
-            serializer.data,
-            key=lambda x: (
-                x['base_currency'],
-                x['target_currency'],
-                float(x['range_details']['min_amount'])
-            )
-        )
-        
-        return Response(sorted_data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class CommissionRangeView(GenericAPIView):
     queryset = Commission.objects.all()
@@ -256,6 +276,7 @@ class CommissionDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [AllowAny]
     lookup_field = 'id'
     lookup_url_kwarg = 'commission_id'
+    http_method_names = ['get', 'patch', 'delete', 'head', 'options']
 
     def get_object(self):
         """
@@ -274,17 +295,6 @@ class CommissionDetailView(RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
-
-    def put(self, request, *args, **kwargs):
-        """
-        PUT está deshabilitado. Usa PATCH para actualizaciones parciales.
-        """
-        return Response(
-            {
-                "error": "PUT method is not allowed. Use PATCH for partial updates."
-            },
-            status=status.HTTP_405_METHOD_NOT_ALLOWED
-        )
 
     def perform_update(self, serializer):
         """

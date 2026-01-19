@@ -49,6 +49,33 @@ class RangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Range
         fields = ['id', 'min_amount', 'max_amount', 'created_date', 'created_by']
+    
+    def validate(self, attrs):
+        """Validar que no exista un rango con la misma combinación de min_amount y max_amount"""
+        min_amount = attrs.get('min_amount')
+        max_amount = attrs.get('max_amount')
+        
+        if min_amount is not None and max_amount is not None:
+            # Verificar si ya existe un rango con estos valores
+            existing_range = Range.objects.filter(
+                min_amount=min_amount,
+                max_amount=max_amount
+            ).first()
+            
+            # Si estamos actualizando, excluir la instancia actual
+            if self.instance:
+                existing_range = Range.objects.filter(
+                    min_amount=min_amount,
+                    max_amount=max_amount
+                ).exclude(id=self.instance.id).first()
+            
+            if existing_range:
+                raise serializers.ValidationError({
+                    'error': f'Ya existe un rango con min_amount={min_amount} y max_amount={max_amount}. '
+                             f'La combinación de min_amount y max_amount debe ser única.'
+                })
+        
+        return attrs
 
 class CommissionSerializer(serializers.ModelSerializer):
     base_currency_name = serializers.CharField(source='base_currency.name', read_only=True)
@@ -181,7 +208,7 @@ class CommissionSerializerApp(serializers.ModelSerializer):
 class ReverseRangeRateSerializerApp(serializers.Serializer):
     min = serializers.IntegerField(source='range.min_amount')
     max = serializers.IntegerField(source='range.max_amount')
-    rate = serializers.FloatField(source='reverse_commission')
+    rate = serializers.DecimalField(max_digits=6, decimal_places=3, source='reverse_commission')
 
 class ReverseCommissionSerializerApp(serializers.ModelSerializer):
     base_currency = serializers.SlugRelatedField(slug_field='code', queryset=Currency.objects.all())
