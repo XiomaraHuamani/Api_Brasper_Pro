@@ -99,9 +99,6 @@ class Range(models.Model):
     def __str__(self):
         return f"Range: {self.min_amount} - {self.max_amount}"
 
-    class Meta:
-        unique_together = ('min_amount', 'max_amount')
-
 class Commission(models.Model):
     id = models.BigAutoField(primary_key=True)
     base_currency = models.ForeignKey(

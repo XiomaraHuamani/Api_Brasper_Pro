@@ -1,5 +1,4 @@
 from django.shortcuts import get_object_or_404
-from django.db import IntegrityError
 from rest_framework.generics import GenericAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework import mixins, status
@@ -129,43 +128,10 @@ class RangeView(GenericAPIView):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        if not serializer.is_valid():
-            # Interceptar y mejorar mensajes de error de unique_together
-            # En settings.py, NON_FIELD_ERRORS_KEY está configurado como "error"
-            errors = serializer.errors
-            if 'error' in errors:
-                error_list = errors['error']
-                if isinstance(error_list, list):
-                    # Buscar el mensaje de unique_together y reemplazarlo
-                    for i, error_msg in enumerate(error_list):
-                        if isinstance(error_msg, str) and ('unique' in error_msg.lower() or 'min_amount, max_amount' in error_msg.lower()):
-                            min_amount = request.data.get('min_amount', 'N/A')
-                            max_amount = request.data.get('max_amount', 'N/A')
-                            errors['error'][i] = f'Ya existe un rango con min_amount={min_amount} y max_amount={max_amount}. La combinación de min_amount y max_amount debe ser única.'
-            elif 'non_field_errors' in errors:
-                # Fallback por si cambia la configuración
-                non_field_errors = errors['non_field_errors']
-                if isinstance(non_field_errors, list):
-                    for i, error_msg in enumerate(non_field_errors):
-                        if isinstance(error_msg, str) and ('unique' in error_msg.lower() or 'min_amount, max_amount' in error_msg.lower()):
-                            min_amount = request.data.get('min_amount', 'N/A')
-                            max_amount = request.data.get('max_amount', 'N/A')
-                            errors['non_field_errors'][i] = f'Ya existe un rango con min_amount={min_amount} y max_amount={max_amount}. La combinación de min_amount y max_amount debe ser única.'
-            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
+        if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except IntegrityError as e:
-            # Manejar errores de integridad de la base de datos como respaldo
-            if 'unique' in str(e).lower() or 'duplicate' in str(e).lower():
-                return Response({
-                    'error': 'Ya existe un rango con esta combinación de min_amount y max_amount. '
-                            'La combinación de min_amount y max_amount debe ser única.'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            return Response({
-                'error': 'Error al crear el rango. Por favor verifica los datos.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RangeDetailView(GenericAPIView):
     queryset = Range.objects.all()
