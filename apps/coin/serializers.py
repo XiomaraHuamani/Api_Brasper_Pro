@@ -50,6 +50,25 @@ class RangeSerializer(serializers.ModelSerializer):
         model = Range
         fields = ['id', 'min_amount', 'max_amount', 'created_date', 'created_by']
 
+    def validate_min_amount(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError("min_amount debe ser mayor o igual a 0.")
+        return value
+
+    def validate_max_amount(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError("max_amount debe ser mayor o igual a 0.")
+        return value
+
+    def validate(self, attrs):
+        min_amount = attrs.get('min_amount')
+        max_amount = attrs.get('max_amount')
+        if min_amount is not None and max_amount is not None and min_amount >= max_amount:
+            raise serializers.ValidationError({
+                'max_amount': 'max_amount debe ser mayor que min_amount.'
+            })
+        return attrs
+
 class CommissionSerializer(serializers.ModelSerializer):
     base_currency_name = serializers.CharField(source='base_currency.name', read_only=True)
     target_currency_name = serializers.CharField(source='target_currency.name', read_only=True)

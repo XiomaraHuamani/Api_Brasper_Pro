@@ -1,0 +1,89 @@
+
+PE: {
+  PEN: [
+    {
+      bank: "Interbank",
+      account: "8983003838875",
+      company: "BRASPER 21",
+      currency: "Soles (PEN)",
+      image: "/bancos/interbank.png",
+    },
+    {
+      bank: "BBVA",
+      account: "001101280200817822",
+      company: "BRASPER 21 S.A.C",
+      currency: "Soles (PEN)",
+      image: "/bancos/bbva.png",
+    },
+    {
+      bank: "BCP",
+      account: "1912077975044",
+      company: "INGENITECH S.A.C",
+      currency: "Soles (PEN)",
+      image: "/bancos/bcp.png",
+    },
+    {
+      bank: "Yape",
+      account: "966991933",
+      company: "INGENITECH S.A.C",
+      currency: "Soles (PEN)",
+      image: "/bancos/yape.png",
+    },
+    {
+      bank: "Izipay",
+      account: "No disponible",
+      company: "No disponible",
+      currency: "Soles (PEN)",
+      image: "/bancos/izipay.png",
+    },
+  ],
+  USD: [
+    {
+      bank: "Interbank",
+      account: "8983003838882",
+      company: "BRASPER 21",
+      currency: "Dólares (USD)",
+      image: "/bancos/interbank.png",
+    },
+    {
+      bank: "BBVA",
+      account: "001101280200817830",
+      company: "BRASPER 21 S.A.C",
+      currency: "Dólares (USD)",
+      image: "/bancos/bbva.png",
+    },
+    {
+      bank: "Scotiabank",
+      account: "0560603578",
+      company: "BRASPER 21 S.A.C",
+      currency: "Dólares (USD)",
+      image: "/bancos/scotiabank.png",
+    },
+    {
+      bank: "BCP",
+      account: "1912077982125",
+      company: "INGENITECH S.A.C",
+      currency: "Dólares (USD)",
+      image: "/bancos/bcp.png",
+    },
+  ],
+},
+BR: {
+  BRL: [
+    {
+      bank: "Banco FITBANK - 450",
+      pix: "50.754.016/0001-68",
+      company: "Brasper 21 Corretora De Cambio Ltda",
+      currency: "Reales (BRL)",
+      image: "/bancos/fitbank.png",
+    },
+    {
+      bank: "Banco do Brasil - 001",
+      pix: "826a6382-fb0b-4998-9c30-772596098a48",
+      company: "Brasper 21 Corretora De Cambio Ltda",
+      currency: "Reales (BRL)",
+      image: "/bancos/banco_do_brasil.png",
+    },
+  ],
+},
+]

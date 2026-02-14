@@ -54,6 +54,9 @@ class ExchangeRateView(GenericAPIView):
     queryset = ExchangeRate.objects.all()
     serializer_class = ExchangeRateSerializer
     # permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        return ExchangeRate.objects.select_related('base_currency', 'target_currency').all()
+
     def get_permissions(self):
         if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
             return [AllowAny()]
@@ -74,6 +77,9 @@ class ExchangeRateDetailView(GenericAPIView):
     queryset = ExchangeRate.objects.all()
     serializer_class = ExchangeRateSerializer
     # permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ExchangeRate.objects.select_related('base_currency', 'target_currency').all()
 
     def get_object(self, exchange_rate_id):
         return get_object_or_404(self.get_queryset(), id=exchange_rate_id)
@@ -129,7 +135,10 @@ class RangeView(GenericAPIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            created_by = ''
+            if request.user and getattr(request.user, 'is_authenticated', False):
+                created_by = getattr(request.user, 'email', None) or getattr(request.user, 'username', '')
+            serializer.save(created_by=created_by or None)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -184,6 +193,7 @@ class CommissionView(ListCreateAPIView):
 class CommissionRangeView(GenericAPIView):
     queryset = Commission.objects.all()
     serializer_class = CommissionSerializer
+    permission_classes = [AllowAny]
 
     def get(self, request):
         # Obtenemos todas las comisiones
