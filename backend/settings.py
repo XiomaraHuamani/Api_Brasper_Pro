@@ -112,9 +112,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'brasper_pro',
-        'USER': 'postgres',
-        'PASSWORD': '9780ubuntu',
-        'HOST': '213.199.44.2',
+        'USER': 'admin',
+        'PASSWORD': 'Admin@Secure2026!',
+        'HOST': '167.86.97.146',
 	    'PORT': '5432',
     }
 }
@@ -275,14 +275,15 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Google OAUTH
-# Read sensitive values from environment variables to avoid committing secrets
-GOOGLE_OAUTH_CLIENT_ID = env('GOOGLE_OAUTH_CLIENT_ID', default='')
-GOOGLE_OAUTH_CLIENT_SECRET = env('GOOGLE_OAUTH_CLIENT_SECRET', default='')
+# Read sensitive values from environment variables to avoid committing secrets.
+# Fall back to GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET so one set of vars works for both allauth and custom OAuth.
+GOOGLE_OAUTH_CLIENT_ID = env('GOOGLE_OAUTH_CLIENT_ID', default=env('GOOGLE_CLIENT_ID', default=''))
+GOOGLE_OAUTH_CLIENT_SECRET = env('GOOGLE_OAUTH_CLIENT_SECRET', default=env('GOOGLE_CLIENT_SECRET', default=''))
 GOOGLE_OAUTH_CALLBACK_URL = env('GOOGLE_OAUTH_CALLBACK_URL', default='http://localhost:8000/api/v1/auth/google/callback/')
 
-# Google OAuth Settings
-GOOGLE_OAUTH2_CLIENT_ID = env('GOOGLE_OAUTH2_CLIENT_ID', default='')
-GOOGLE_OAUTH2_CLIENT_SECRET = env('GOOGLE_OAUTH2_CLIENT_SECRET', default='')
+# Google OAuth Settings (code flow; fallback to same client if not set)
+GOOGLE_OAUTH2_CLIENT_ID = env('GOOGLE_OAUTH2_CLIENT_ID', default=env('GOOGLE_CLIENT_ID', default=''))
+GOOGLE_OAUTH2_CLIENT_SECRET = env('GOOGLE_OAUTH2_CLIENT_SECRET', default=env('GOOGLE_CLIENT_SECRET', default=''))
 GOOGLE_OAUTH2_REDIRECT_URI = env('GOOGLE_OAUTH2_REDIRECT_URI', default='')
 
 # LOGGING = {
